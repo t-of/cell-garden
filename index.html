@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e1a14">
+  <meta name="description" content="マスがまわりの数だけで生まれたり消えたりをくり返す「ライフゲーム」。指で描くか、グライダーなどの有名な形を置いて、動き出す模様を眺める。">
+  <title>CELL GARDEN — 生まれて消えるマスの模様</title>
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CELL GARDEN">
+  <meta property="og:title" content="CELL GARDEN — 生まれて消えるマスの模様">
+  <meta property="og:description" content="マスがまわりの数だけで生まれたり消えたりをくり返す「ライフゲーム」。指で描くか、グライダーなどの有名な形を置いて、動き出す模様を眺める。">
+  <meta property="og:url" content="https://t-of.github.io/cell-garden/">
+  <meta property="og:image" content="https://t-of.github.io/cell-garden/icons/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- apple-mobile-web-app-status-bar-style は付けない（black-translucent だと iOS 26 で上部が隠れる） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="CELL GARDEN">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="./webapp-kit/webapp-kit.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="bar">
+      <div class="bar__text">
+        <h1 class="bar__title">CELL GARDEN</h1>
+        <p class="bar__stats">世代 <span id="gen">0</span>・生きている <span id="alive">0</span></p>
+        <p class="bar__note" id="note">くり返しに入ったら止まる</p>
+      </div>
+      <button class="icon-btn" id="soundBtn" aria-pressed="true" aria-label="音: オン"><svg viewBox="0 0 24 24" id="soundIcon" aria-hidden="true"></svg></button>
+      <button class="icon-btn" id="helpBtn" aria-label="遊び方">?</button>
+    </header>
+
+    <div class="board" id="board">
+      <canvas id="cells" width="64" height="64" aria-label="盤。なぞると描ける"></canvas>
+      <canvas id="over" aria-hidden="true"></canvas>
+      <p class="board__msg" id="msg" role="status" hidden></p>
+    </div>
+
+    <section class="panel">
+      <div class="controls">
+        <button class="btn btn--play" id="play" aria-label="再生">▶</button>
+        <button class="btn" id="step">1 世代</button>
+        <button class="btn" id="reset">はじめから</button>
+      </div>
+      <div class="speed" id="speed" role="group" aria-label="速さ">
+        <button class="btn" data-speed="0">ゆっくり</button>
+        <button class="btn" data-speed="1">ふつう</button>
+        <button class="btn" data-speed="2">はやい</button>
+        <button class="btn" data-speed="3">いちばん</button>
+      </div>
+
+      <h2 class="label">道具</h2>
+      <div class="tools">
+        <button class="btn" id="draw" aria-pressed="true">描く</button>
+        <button class="btn" id="random">ランダム</button>
+        <button class="btn" id="clear">全部消す</button>
+      </div>
+      <div class="sizes" id="sizes" role="group" aria-label="盤の大きさ">
+        <button class="btn" data-size="0">小 32</button>
+        <button class="btn" data-size="1">中 64</button>
+        <button class="btn" data-size="2">大 128</button>
+      </div>
+
+      <h2 class="label">かたち <span id="shapeNote"></span></h2>
+      <div class="shapes" id="shapes"></div>
+      <button class="btn" id="rotate" hidden>回す ↻</button>
+
+      <footer class="foot">
+        <div class="foot__actions">
+          <button class="pill" data-wak="install" hidden>アプリにする</button>
+          <button class="pill" data-wak="share" id="share">共有</button>
+        </div>
+        <p class="credit"><a href="/">T.OF...</a> のアプリ</p>
+      </footer>
+    </section>
+  </main>
+
+  <div class="help" id="help" hidden>
+    <div class="help__box" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <h2 id="helpTitle">遊び方</h2>
+      <ol>
+        <li>マスは「生きている」か「空き」。1 世代ごとに、まわり 8 マスのうち生きているマスを数える。空きのマスは<b>ちょうど 3</b> で生まれる。生きているマスは <b>2 か 3</b> なら残り、それ以外は消える。</li>
+        <li>盤を指でなぞると描ける（生きているマスから始めると消せる）。「▶」で動き出す。</li>
+        <li>下の「かたち」を選んで盤をタップすると、グライダーなどの有名な形を置ける。くり返しに入ったら自動で止まる。</li>
+      </ol>
+      <p class="help__note">もとは「コンウェイのライフゲーム」という数学のしくみ。盤の上下・左右の端はつながっている。止まったあと「▶」を押すと、止めずに動き続ける。</p>
+      <button class="btn btn--primary" id="helpClose">はじめる</button>
+    </div>
+  </div>
+
+  <script src="./webapp-kit/webapp-kit.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
